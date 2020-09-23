@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated>
+      <config projectName="opengl-imgui-sample" targetName="opengl-imgui-sample" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Release-Visual Studio" CONFIG_NAME="Release" TOOLCHAIN_NAME="Visual Studio" GENERATION_OPTIONS="-G &quot;Visual Studio 16 2019&quot;" GENERATION_DIR="build" />
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="af2152ec-4f33-4350-88af-68fa70b55dfe" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Release-Visual Studio" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1hscptVLqK6HXsFpn74QJoblvnX" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/build" />
+    <property name="settings.editor.selected.configurable" value="CMakeSettings" />
+  </component>
+  <component name="RunManager">
+    <configuration name="opengl-imgui-sample" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" WORKING_DIR="file://$PROJECT_DIR$/build" PASS_PARENT_ENVS_2="true" PROJECT_NAME="opengl-imgui-sample" TARGET_NAME="opengl-imgui-sample" CONFIG_NAME="Release-Visual Studio" RUN_TARGET_PROJECT_NAME="opengl-imgui-sample" RUN_TARGET_NAME="opengl-imgui-sample">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="af2152ec-4f33-4350-88af-68fa70b55dfe" name="Default Changelist" comment="" />
+      <created>1600803425445</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1600803425445</updated>
+      <workItem from="1600803426471" duration="343000" />
+      <workItem from="1600803781757" duration="2398000" />
+      <workItem from="1600850334174" duration="562000" />
+      <workItem from="1600850910954" duration="17860000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="586" y="198" key="#Inspections" timestamp="1600874413915">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="586" y="198" key="#Inspections/0.0.1920.1040@0.0.1920.1040" timestamp="1600874413915" />
+    <state x="828" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1600804050755">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="828" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1600804050755" />
+    <state x="1201" y="274" key="FileChooserDialogImpl" timestamp="1600804050085">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="1201" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1600804050085" />
+    <state width="1877" height="253" key="GridCell.Tab.0.bottom" timestamp="1600875489958">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="253" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1600875489958" />
+    <state width="1877" height="253" key="GridCell.Tab.0.center" timestamp="1600875489958">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="253" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1600875489958" />
+    <state width="1877" height="253" key="GridCell.Tab.0.left" timestamp="1600875489958">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="253" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1600875489958" />
+    <state width="1877" height="253" key="GridCell.Tab.0.right" timestamp="1600875489958">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="253" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1600875489958" />
+    <state x="922" y="164" key="SettingsEditor" timestamp="1600804021012">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="922" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1600804021012" />
+    <state x="1096" y="242" key="run.anything.popup" timestamp="1600864172291">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="1096" y="242" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1600864172291" />
+    <state x="1103" y="230" width="672" height="678" key="search.everywhere.popup" timestamp="1600875706422">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="1103" y="230" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1600875706422" />
+  </component>
+</project>
