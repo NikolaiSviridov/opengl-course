@@ -44,7 +44,7 @@ file(GLOB SOURCE
 set(NAME "HW2_cubemap")
 add_executable(${NAME} ${SOURCE})
 target_link_libraries(${NAME} ${LIBS})
-set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CHAPTER}")
+set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
 # copy shader files to build directory
 file(GLOB SHADERS
@@ -55,7 +55,7 @@ file(GLOB SHADERS
 )
 
 foreach(SHADER ${SHADERS})
-        file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/${CHAPTER})
+        file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/)
 endforeach(SHADER)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
