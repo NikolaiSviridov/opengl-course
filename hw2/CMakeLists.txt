@@ -1,61 +1,53 @@
-cmake_minimum_required (VERSION 3.0)
-cmake_policy(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0)
+project (HW2 CXX)
+set(NAME "HW2")
 
-project (HW2)
+set(CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+# CONFIG option is important so that CMake doesnt search for modules into the default modules directory
+find_package(imgui CONFIG)
+find_package(glfw CONFIG)
+find_package(glew CONFIG)
+find_package(fmt CONFIG)
+find_package(glm CONFIG)
+#find_package(stb CONFIG)
+find_package(glad CONFIG)
+find_package(assimp CONFIG)
+find_package(tinyobjloader CONFIG)
 
-link_directories(${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_CXX_STANDARD 17)
 
-list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+add_library(STB_IMAGE "includes/stb_image.cpp")
+file(GLOB SOURCES
+        src/*.cpp src/*.h
+        includes/util/*.cpp includes/util/*.h
+        shaders/*.vs shaders/*.fs
+        bindings/*.cpp bindings/*.hpp)
 
-find_package(GLM REQUIRED)
-message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
-find_package(GLFW3 REQUIRED)
-message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
-find_package(ASSIMP REQUIRED)
-message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-find_package(OpenGL REQUIRED)
-add_definitions(${OPENGL_DEFINITIONS})
-find_package(X11 REQUIRED)
-
-set(LIBS ${GLFW3_LIBRARY} X11 Xrandr Xinerama Xi Xxf86vm Xcursor GL dl pthread freetype ${ASSIMP_LIBRARY})
-set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
-
-
+add_executable(${NAME} ${SOURCES})
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
-add_library(STB_IMAGE "includes/stb_image.cpp")
-set(LIBS ${LIBS} STB_IMAGE)
+#add_custom_command(
+#        TARGET ${NAME}
+#        POST_BUILD
+#    #    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${PROJECT_BINARY_DIR}/assets
+#        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/shaders ${PROJECT_BINARY_DIR}/shaders
+#)
 
-add_library(GLAD "includes/glad/glad.c")
-set(LIBS ${LIBS} GLAD)
+target_compile_definitions(${NAME} PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
+target_link_libraries(${NAME}
+                        tinyobjloader::tinyobjloader
+                        imgui::imgui
+                        GLEW::glew_s
+                        glfw::glfw
+                        fmt::fmt
+                        glm::glm
+                #        stb::stb
+                        glad::glad
+                        assimp::assimp
+                        STB_IMAGE
+                        )
 
-file(GLOB SOURCE
-    "src/*.h"
-    "src/*.cpp"
-    "src/*.vs"
-    "src/*.fs"
-    "src/*.gs"
-)
-set(NAME "HW2_cubemap")
-add_executable(${NAME} ${SOURCE})
-target_link_libraries(${NAME} ${LIBS})
-set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
-
-# copy shader files to build directory
-file(GLOB SHADERS
-         "shaders/*.vs"
-         "shaders/*.frag"
-         "shaders/*.fs"
-         "shaders/*.gs"
-)
-
-foreach(SHADER ${SHADERS})
-        file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/)
-endforeach(SHADER)
-
-include_directories(${CMAKE_SOURCE_DIR}/includes)
+include_directories(./includes)

@@ -9,12 +9,21 @@
 #include <util/model.h>
 #include <iostream>
 
+#include <imgui.h>
+#include "../bindings/imgui_impl_glfw.h"
+#include "../bindings/imgui_impl_opengl3.h"
+
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+
 void processInput(GLFWwindow *window);
+
 unsigned int loadCubemap(vector<std::string> faces);
+
 void init_glfw();
-GLFWwindow* init_glfw_window();
+
+GLFWwindow *init_glfw_window();
 
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -36,8 +45,10 @@ int main() {
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) return -1;
 
-    Shader shader("cubemaps.vs", "cubemaps.fs");
-    Shader skyboxShader("skybox.vs", "skybox.fs");
+    Shader shader(FileSystem::getPath("shaders/cubemaps.vs").c_str(),
+                  FileSystem::getPath("shaders/cubemaps.fs").c_str());
+    Shader skyboxShader(FileSystem::getPath("shaders/skybox.vs").c_str(),
+                        FileSystem::getPath("shaders/skybox.fs").c_str());
 
     float skyboxVertices[] = {
             // positions
@@ -168,7 +179,7 @@ void init_glfw() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
-GLFWwindow* init_glfw_window() {
+GLFWwindow *init_glfw_window() {
     GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "HW2", nullptr, nullptr);
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -176,8 +187,8 @@ GLFWwindow* init_glfw_window() {
         return nullptr;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window
-                                   , [](GLFWwindow* window, int width, int height) {glViewport(0, 0, width, height);});
+    glfwSetFramebufferSizeCallback(window,
+                                   [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     return window;
@@ -215,7 +226,6 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(yoffset);
 }
-
 
 unsigned int loadCubemap(vector<std::string> faces) {
     unsigned int textureID;
