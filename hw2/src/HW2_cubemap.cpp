@@ -1,30 +1,19 @@
-#include <glad/glad.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include <util/filesystem.h>
-#include <util/shader_m.h>
+#include <util/shader.h>
 #include <util/camera.h>
 #include <util/model.h>
 #include <iostream>
 
+
 #include <imgui.h>
 #include "../bindings/imgui_impl_glfw.h"
 #include "../bindings/imgui_impl_opengl3.h"
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-
-void processInput(GLFWwindow *window);
-
-unsigned int loadCubemap(vector<std::string> faces);
-
-void init_glfw();
-
-GLFWwindow *init_glfw_window();
-
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 const unsigned int WIDTH = 800;
@@ -36,19 +25,59 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void processInput(GLFWwindow *window);
+unsigned int loadCubemap(vector<std::string> faces);
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+ImGuiIO init_imgui(GLFWwindow *window);
+GLFWwindow *init_opengl() {
+    glfwInit();
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
+    GLFWwindow *window = glfwCreateWindow(
+            WIDTH,
+            HEIGHT,
+            "Task-2-3Dobject",
+            nullptr,
+            nullptr
+    );
+
+    if (window == nullptr) {
+        glfwTerminate();
+        throw std::runtime_error("Failed to create GLFW window");
+    }
+
+    glfwMakeContextCurrent(window);
+
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+//    glfwSetCursorPosCallback(window, mouse_callback);
+
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        throw std::runtime_error("Failed to initialize GLEW");
+    }
+
+    return window;
+}
+
 int main() {
-    init_glfw();
-    auto window = init_glfw_window();
-    if (!window) return -1;
+    GLFWwindow *window = init_opengl();
+    ImGuiIO io = init_imgui(window);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) return -1;
-
-    Shader shader(FileSystem::getPath("shaders/cubemaps.vs").c_str(),
-                  FileSystem::getPath("shaders/cubemaps.fs").c_str());
+    Shader shader(FileSystem::getPath("shaders/object.vs").c_str(),
+                  FileSystem::getPath("shaders/object.fs").c_str());
     Shader skyboxShader(FileSystem::getPath("shaders/skybox.vs").c_str(),
-                        FileSystem::getPath("shaders/skybox.fs").c_str());
+                                    FileSystem::getPath("shaders/skybox.fs").c_str());
 
     float skyboxVertices[] = {
             // positions
@@ -125,6 +154,12 @@ int main() {
     skyboxShader.setInt("skybox", 0);
 
 
+    static float c_texture;
+    static float c_reflection;
+    static float c_refraction;
+    static float fresnel_alpha;
+    static float frag_color_mix = 0.5;
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -132,8 +167,35 @@ int main() {
 
         processInput(window);
 
+        // Settings
+        int frame_width, frame_height;
+        glfwGetFramebufferSize(window, &frame_width, &frame_height);
+        glViewport(0, 0, frame_width, frame_height);
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // ImGui
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+
+        ImGui::NewFrame();
+        ImGui::Begin("Settings");
+        ImGui::SliderFloat("Refraction", &c_refraction, 0.0f, 1.0f);
+        ImGui::SliderFloat("Reflection", &c_reflection, 0.0f, 1.0f);
+        ImGui::SliderFloat("Fresnel alpha", &fresnel_alpha, 0.0f, 2.0f);
+        ImGui::SliderFloat("Frag color mix", &frag_color_mix, 0.0f, 1.0f);
+        ImGui::End();
+
+        // Mouse event
+//        if (!ImGui::IsAnyWindowFocused()) {
+//            auto[delta_x, delta_y] = ImGui::GetMouseDragDelta();
+//            ImGui::ResetMouseDragDelta();
+//
+//            glfwGetFramebufferSize(window, &frame_width, &frame_height);
+//            camera.ProcessMouseMovement(delta_x / float(frame_width),
+//                                          delta_y / float(frame_height));
+//        }
 
         shader.use();
         glm::mat4 model = glm::mat4(1.0f);
@@ -144,6 +206,10 @@ int main() {
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
         shader.setVec3("cameraPos", camera.Position);
+        shader.setFloat("c_reflection", c_reflection);
+        shader.setFloat("c_refraction", c_refraction);
+        shader.setFloat("fresnel_alpha", fresnel_alpha);
+        shader.setFloat("frag_color_mix", frag_color_mix);
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         object.Draw(skyboxShader);
@@ -161,6 +227,8 @@ int main() {
         glBindVertexArray(0);
         glDepthFunc(GL_LESS);
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -168,31 +236,13 @@ int main() {
     glDeleteVertexArrays(1, &skyboxVAO);
     glDeleteBuffers(1, &skyboxVAO);
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
 
-void init_glfw() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
-
-GLFWwindow *init_glfw_window() {
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "HW2", nullptr, nullptr);
-    if (window == nullptr) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return nullptr;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window,
-                                   [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-    return window;
-}
 
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -223,9 +273,6 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    camera.ProcessMouseScroll(yoffset);
-}
 
 unsigned int loadCubemap(vector<std::string> faces) {
     unsigned int textureID;
@@ -251,4 +298,27 @@ unsigned int loadCubemap(vector<std::string> faces) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return textureID;
+}
+
+ImGuiIO init_imgui(GLFWwindow *window) {
+    const char *glsl_version = "#version 330";
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+    ImGui::StyleColorsDark();
+
+    return io;
+}
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode){
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    camera.ProcessMouseScroll(yoffset);
 }

@@ -1,7 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <glad/glad.h>
+#include <GL/glew.h>
 #include <glm/glm.hpp>
 
 #include <string>
@@ -134,6 +134,9 @@ public:
     {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
+    template<typename T> void set_uniform(const std::string& name, T val);
+    template<typename T> void set_uniform(const std::string& name, T val1, T val2);
+    template<typename T> void set_uniform(const std::string& name, T val1, T val2, T val3);
 
 private:
     // utility function for checking shader compilation/linking errors.

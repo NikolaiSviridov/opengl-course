@@ -12,7 +12,7 @@ find_package(glew CONFIG)
 find_package(fmt CONFIG)
 find_package(glm CONFIG)
 #find_package(stb CONFIG)
-find_package(glad CONFIG)
+#find_package(glad CONFIG)
 find_package(assimp CONFIG)
 find_package(tinyobjloader CONFIG)
 
@@ -29,23 +29,17 @@ add_executable(${NAME} ${SOURCES})
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
 
-#add_custom_command(
-#        TARGET ${NAME}
-#        POST_BUILD
-#    #    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${PROJECT_BINARY_DIR}/assets
-#        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/shaders ${PROJECT_BINARY_DIR}/shaders
-#)
 
 target_compile_definitions(${NAME} PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW)
 target_link_libraries(${NAME}
                         tinyobjloader::tinyobjloader
                         imgui::imgui
+#                        glad::glad
                         GLEW::glew_s
                         glfw::glfw
                         fmt::fmt
                         glm::glm
                 #        stb::stb
-                        glad::glad
                         assimp::assimp
                         STB_IMAGE
                         )
