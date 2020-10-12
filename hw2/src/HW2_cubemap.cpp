@@ -48,33 +48,12 @@ GLFWwindow *init_opengl() {
 
     glfwMakeContextCurrent(window);
 
-
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         throw std::runtime_error("Failed to initialize GLEW");
     }
 
     return window;
-}
-
-void drag(glm::mat4& model, float zoom) {
-    if (!ImGui::IsAnyWindowFocused()) {
-        auto[dx, dy] = ImGui::GetMouseDragDelta();
-        ImGui::ResetMouseDragDelta();
-
-        float rotX = -1 * glm::radians(dy / 2.0);
-        float rotY = -1 * glm::radians(dx / 2.0);
-
-        auto xAxis = glm::vec3(1, 0, 0);
-        model = glm::rotate(model, rotX, glm::vec3(xAxis.x, xAxis.y, xAxis.z));
-        model = glm::rotate(glm::mat4(1), rotX, glm::vec3(xAxis.x, xAxis.y, xAxis.z)) *
-                glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, zoom));
-        auto yAxis = glm::vec3(0, 1, 0);
-//        model = glm::rotate(model, rotY, glm::vec3(yAxis.x, yAxis.y, yAxis.z));
-
-        model = glm::rotate(glm::mat4(1), rotY, glm::vec3(yAxis.x, yAxis.y, yAxis.z)) *
-                          glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, zoom));
-    }
 }
 
 int main() {
@@ -165,8 +144,10 @@ int main() {
     static float c_reflection;
     static float c_refraction;
     static float fresnel = 1.0;
-    float zoom = 0.1f;
-
+    static float frag_color = 0.5;
+    static float c_texture;
+    float zoom = 1.5f;
+    auto rotation = glm::vec2(0.0f);
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -187,18 +168,26 @@ int main() {
         ImGui::SliderFloat("Refraction", &c_refraction, 0.0f, 1.0f);
         ImGui::SliderFloat("Reflection", &c_reflection, 0.0f, 1.0f);
         ImGui::SliderFloat("Fresnel", &fresnel, 0.0f, 2.0f);
+        ImGui::SliderFloat("Texture", &c_texture, 0.0f, 1.0f);
+        ImGui::SliderFloat("Frag color", &frag_color, 0.0f, 1.0f);
         ImGui::End();
 
         wheel_callback(zoom);
 
         shader.use();
-        auto model = glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, zoom));
+        auto model = glm::scale(glm::mat4(1.0f), glm::vec3(zoom));
 
-        const float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        glm::mat4 view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-//        glm::mat4 view = camera.GetViewMatrix();
+        if (!ImGui::IsAnyWindowFocused()) {
+            auto delta = ImGui::GetMouseDragDelta(0, 0);
+            ImGui::ResetMouseDragDelta();
+            rotation += glm::vec2(delta.x / WIDTH, delta.y / HEIGHT) * 30.0f;
+        }
+
+        glm::mat4 view = camera.GetViewMatrix();
+        view = glm::rotate(view, glm::radians(rotation.y), glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, glm::radians(rotation.x), glm::vec3(0.0f, 1.0f, 0.0f));
+
+
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) WIDTH / (float) HEIGHT, 0.1f,
                                                 100.0f);
         shader.setMat4("model", model);
@@ -208,14 +197,15 @@ int main() {
         shader.setFloat("c_reflection", c_reflection);
         shader.setFloat("c_refraction", c_refraction);
         shader.setFloat("fresnel", fresnel);
+        shader.setFloat("frag_color", frag_color);
+        shader.setFloat("c_texture", c_texture);
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         object.Draw(skyboxShader);
 
         glDepthFunc(GL_LEQUAL);
         skyboxShader.use();
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-        skyboxShader.setMat4("view", view);
+        skyboxShader.setMat4("view", glm::mat4(glm::mat3(view)));
         skyboxShader.setMat4("projection", projection);
 
         glBindVertexArray(skyboxVAO);
