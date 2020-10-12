@@ -10,7 +10,6 @@
 #include <util/model.h>
 #include <iostream>
 
-
 #include <imgui.h>
 #include "../bindings/imgui_impl_glfw.h"
 #include "../bindings/imgui_impl_opengl3.h"
@@ -18,20 +17,13 @@
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 const unsigned int WIDTH = 800;
 const unsigned int HEIGHT = 600;
-float lastX = (float) WIDTH / 2.0;
-float lastY = (float) HEIGHT / 2.0;
-bool firstMouse = true;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
 unsigned int loadCubemap(vector<std::string> faces);
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+
 ImGuiIO init_imgui(GLFWwindow *window);
+
+void wheel_callback(float &zoom);
+
 GLFWwindow *init_opengl() {
     glfwInit();
 
@@ -56,9 +48,6 @@ GLFWwindow *init_opengl() {
 
     glfwMakeContextCurrent(window);
 
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-//    glfwSetCursorPosCallback(window, mouse_callback);
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
@@ -68,16 +57,35 @@ GLFWwindow *init_opengl() {
     return window;
 }
 
+void drag(glm::mat4& model, float zoom) {
+    if (!ImGui::IsAnyWindowFocused()) {
+        auto[dx, dy] = ImGui::GetMouseDragDelta();
+        ImGui::ResetMouseDragDelta();
+
+        float rotX = -1 * glm::radians(dy / 2.0);
+        float rotY = -1 * glm::radians(dx / 2.0);
+
+        auto xAxis = glm::vec3(1, 0, 0);
+        model = glm::rotate(model, rotX, glm::vec3(xAxis.x, xAxis.y, xAxis.z));
+        model = glm::rotate(glm::mat4(1), rotX, glm::vec3(xAxis.x, xAxis.y, xAxis.z)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, zoom));
+        auto yAxis = glm::vec3(0, 1, 0);
+//        model = glm::rotate(model, rotY, glm::vec3(yAxis.x, yAxis.y, yAxis.z));
+
+        model = glm::rotate(glm::mat4(1), rotY, glm::vec3(yAxis.x, yAxis.y, yAxis.z)) *
+                          glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, zoom));
+    }
+}
+
 int main() {
     GLFWwindow *window = init_opengl();
     ImGuiIO io = init_imgui(window);
 
-//    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     Shader shader(FileSystem::getPath("shaders/object.vs").c_str(),
                   FileSystem::getPath("shaders/object.fs").c_str());
     Shader skyboxShader(FileSystem::getPath("shaders/skybox.vs").c_str(),
-                                    FileSystem::getPath("shaders/skybox.fs").c_str());
+                        FileSystem::getPath("shaders/skybox.fs").c_str());
 
     float skyboxVertices[] = {
             // positions
@@ -154,18 +162,13 @@ int main() {
     skyboxShader.setInt("skybox", 0);
 
 
-    static float c_texture;
     static float c_reflection;
     static float c_refraction;
-    static float fresnel_alpha;
-    static float frag_color_mix = 0.5;
+    static float fresnel = 1.0;
+    float zoom = 0.1f;
 
     while (!glfwWindowShouldClose(window)) {
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        processInput(window);
+        glfwPollEvents();
 
         // Settings
         int frame_width, frame_height;
@@ -183,23 +186,19 @@ int main() {
         ImGui::Begin("Settings");
         ImGui::SliderFloat("Refraction", &c_refraction, 0.0f, 1.0f);
         ImGui::SliderFloat("Reflection", &c_reflection, 0.0f, 1.0f);
-        ImGui::SliderFloat("Fresnel alpha", &fresnel_alpha, 0.0f, 2.0f);
-        ImGui::SliderFloat("Frag color mix", &frag_color_mix, 0.0f, 1.0f);
+        ImGui::SliderFloat("Fresnel", &fresnel, 0.0f, 2.0f);
         ImGui::End();
 
-        // Mouse event
-//        if (!ImGui::IsAnyWindowFocused()) {
-//            auto[delta_x, delta_y] = ImGui::GetMouseDragDelta();
-//            ImGui::ResetMouseDragDelta();
-//
-//            glfwGetFramebufferSize(window, &frame_width, &frame_height);
-//            camera.ProcessMouseMovement(delta_x / float(frame_width),
-//                                          delta_y / float(frame_height));
-//        }
+        wheel_callback(zoom);
 
         shader.use();
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = camera.GetViewMatrix();
+        auto model = glm::scale(glm::mat4(1.0f), glm::vec3(zoom, zoom, zoom));
+
+        const float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        glm::mat4 view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+//        glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) WIDTH / (float) HEIGHT, 0.1f,
                                                 100.0f);
         shader.setMat4("model", model);
@@ -208,8 +207,7 @@ int main() {
         shader.setVec3("cameraPos", camera.Position);
         shader.setFloat("c_reflection", c_reflection);
         shader.setFloat("c_refraction", c_refraction);
-        shader.setFloat("fresnel_alpha", fresnel_alpha);
-        shader.setFloat("frag_color_mix", frag_color_mix);
+        shader.setFloat("fresnel", fresnel);
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         object.Draw(skyboxShader);
@@ -230,7 +228,6 @@ int main() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
     glDeleteVertexArrays(1, &skyboxVAO);
@@ -242,37 +239,6 @@ int main() {
     glfwTerminate();
     return 0;
 }
-
-
-void processInput(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
-}
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-    if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-
-    lastX = xpos;
-    lastY = ypos;
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
 
 unsigned int loadCubemap(vector<std::string> faces) {
     unsigned int textureID;
@@ -313,12 +279,9 @@ ImGuiIO init_imgui(GLFWwindow *window) {
     return io;
 }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode){
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
+void wheel_callback(float &zoom) {
+    auto wheel = ImGui::GetIO().MouseWheel;
+    if (abs(wheel) > 0.1) {
+        zoom *= wheel > 0 ? 1.1f : 1 / 1.1f;
     }
-}
-
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    camera.ProcessMouseScroll(yoffset);
 }
