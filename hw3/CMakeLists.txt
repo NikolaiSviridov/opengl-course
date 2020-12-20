@@ -10,6 +10,7 @@ find_package(glfw REQUIRED CONFIG)
 find_package(glew REQUIRED CONFIG)
 find_package(fmt REQUIRED CONFIG)
 find_package(glm REQUIRED CONFIG)
+find_package(assimp REQUIRED CONFIG)
 
 set(CMAKE_CXX_STANDARD 17)
 file(GLOB SOURCES
@@ -26,5 +27,6 @@ target_link_libraries(${NAME}
                         glfw::glfw 
                         fmt::fmt 
                         glm::glm
+                        assimp::assimp
                         )
 include_directories(./includes)
